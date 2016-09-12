@@ -245,8 +245,14 @@ class Triangulation():
                 point.x -= dist * sin(direction)
                 point.y -= dist * cos(direction)
 
+    def fixed_points(self):
+        return [p for p in self.points.values() if p.fixed()]
+
+    def fixed_edges(self):
+        return [e for e in self.edges if e.fixed()]
+
     def plt_data(self):
-        return [[[e.points[0].x, e.points[1].x], [e.points[0].y, e.points[1].y]] for e in self.edges]
+        return [[[e.points[0].x, e.points[1].x], [e.points[0].y, e.points[1].y]] for e in self.fixed_edges()]
     
     def mean_squared_error(self):
         return sum(pow(p.error(), 2) for p in self.edges)/len(self.edges)

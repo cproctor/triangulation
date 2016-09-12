@@ -40,17 +40,17 @@ with open(args.file) as infile:
         tri.improve()
     for x, y in tri.plt_data():
         plt.plot(x, y, 'k-')
-    for p in tri.points.values():
+    for p in tri.fixed_points():
         plt.annotate(
             p.name, xy=(p.x, p.y), color='blue'
             #textcoords = 'offset points', ha = 'right', va = 'bottom',
         )
     if args.edgelengths:
-        for e in tri.edges:
+        for e in tri.fixed_edges():
             x = (e.points[0].x + e.points[1].x)/2.0
             y = (e.points[0].y + e.points[1].y)/2.0
             plt.annotate(
-                str(e.length), xy=(x, y), color="red"
+                "{0:.1f}".format(e.length), xy=(x, y), color="red"
             )
     plt.show()
 
