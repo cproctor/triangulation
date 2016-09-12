@@ -1,0 +1,64 @@
+#!/usr/local/bin/python3
+from triangulation import Triangulation
+import matplotlib.pyplot as plt
+import argparse
+from csv import DictReader
+
+
+
+desc = """
+Visualize a triangulation.
+The input should be a CSV file in which each line represents a measurement
+with values point1, point2, and distance. There should be a header row
+with labels. Triangles will be constructed in a counter-clockwise direction,
+so it may be necessary to re-order measurements to get the desired plot.
+
+If --improve is given, the triangulation will calculate error in the
+triangulation (by computing the squared difference between actual measurements
+and what is required for the geometry to be possible.
+
+--orientation, if given, specifies the direction in degrees (clockwise from north)
+of the first measurement, from point1 to point2.
+"""
+
+parser = argparse.ArgumentParser(description=desc)
+parser.add_argument('file', help="CSV file")
+parser.add_argument('--improve', '-i', action='store_true', default=False, help="Minimize errors")
+parser.add_argument('--orientation', '-o', type=float, default=180, help="Plot orientation (in degrees)")
+parser.add_argument('--edgelengths', '-e', action='store_true', default=False, help="Write out the edge lengths")
+args = parser.parse_args()
+
+with open(args.file) as infile:
+    measurements = [row for row in DictReader(infile)]
+    for m in measurements:
+        m['distance'] = float(m['distance'])
+    tri = Triangulation(measurements, args.orientation)
+    tri.compute_positions()
+    if args.improve:
+        for x, y in tri.plt_data():
+            plt.plot(x, y, 'b-')
+        tri.improve()
+    for x, y in tri.plt_data():
+        plt.plot(x, y, 'k-')
+    for p in tri.points.values():
+        plt.annotate(
+            p.name, xy=(p.x, p.y), color='blue'
+            #textcoords = 'offset points', ha = 'right', va = 'bottom',
+        )
+    if args.edgelengths:
+        for e in tri.edges:
+            x = (e.points[0].x + e.points[1].x)/2.0
+            y = (e.points[0].y + e.points[1].y)/2.0
+            plt.annotate(
+                str(e.length), xy=(x, y), color="red"
+            )
+    plt.show()
+
+    
+    
+
+
+
+
+
+
