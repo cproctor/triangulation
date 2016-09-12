@@ -23,8 +23,9 @@ of the first measurement, from point1 to point2.
 
 parser = argparse.ArgumentParser(description=desc)
 parser.add_argument('file', help="CSV file")
-parser.add_argument('--improve', '-i', action='store_true', default=False, help="Minimize errors")
+parser.add_argument('--improve', '-i', type=float, default=0, help="Minimize errors, starting by perturbing points the given distance")
 parser.add_argument('--orientation', '-o', type=float, default=180, help="Plot orientation (in degrees)")
+parser.add_argument('--labels', '-l', action='store_true', default=False, help="Label the points")
 parser.add_argument('--edgelengths', '-e', action='store_true', default=False, help="Write out the edge lengths")
 args = parser.parse_args()
 
@@ -34,17 +35,18 @@ with open(args.file) as infile:
         m['distance'] = float(m['distance'])
     tri = Triangulation(measurements, args.orientation)
     tri.compute_positions()
-    if args.improve:
+    if args.improve != 0:
         for x, y in tri.plt_data():
-            plt.plot(x, y, 'b-')
-        tri.improve()
+            plt.plot(x, y, 'y-')
+        tri.improve(args.improve)
     for x, y in tri.plt_data():
         plt.plot(x, y, 'k-')
-    for p in tri.fixed_points():
-        plt.annotate(
-            p.name, xy=(p.x, p.y), color='blue'
-            #textcoords = 'offset points', ha = 'right', va = 'bottom',
-        )
+    if args.labels:
+        for p in tri.fixed_points():
+            plt.annotate(
+                p.name, xy=(p.x, p.y), color='blue'
+                #textcoords = 'offset points', ha = 'right', va = 'bottom',
+            )
     if args.edgelengths:
         for e in tri.fixed_edges():
             x = (e.points[0].x + e.points[1].x)/2.0
