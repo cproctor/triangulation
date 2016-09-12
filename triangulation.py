@@ -123,17 +123,26 @@ class MapEdge(object):
 
 class MapTriangle():
     def __init__(self, p1, p2, p3):
-        assert p1.get_edge_to(p2) and p2.get_edge_to(p3) and p3.get_edge_to(p1), "Triangles must be composed of points linked by edges"
-        self.points = sorted([p1, p2, p3], key=lambda p: p.index)
+        if not p1.get_edge_to(p2) and p2.get_edge_to(p3) and p3.get_edge_to(p1): 
+            raise ValueError("Triangles must be composed of points linked by edges")
 
-    def get_edges(self):
-        "Return edges in order of definition"
-        edges = [
-            self.points[0].get_edge_to(self.points[1]),
-            self.points[1].get_edge_to(self.points[2]),
-            self.points[2].get_edge_to(self.points[0])
-        ]
-        return sorted(edges, key=lambda e: e.index)
+        # Sort elements by their index, so that the most recently added edge will be last.
+        self.edges = sorted([p1.get_edge_to(p2), p2.get_edge_to(p3), p3.get_edge_to(p1)], key=lambda e:e.index)
+        final_edge = self.edges[2]
+
+        # Define the order of points so that they progress in the order of the last-added edge.
+        c = final_edge.points[0]
+        a = final_edge.points[1]
+        for point in (p1, p2, p3):
+            if point is not a and point is not c:
+                b = point
+        self.points = [a, b, c]
+
+    def follow(self, point):
+        "Gets the next point, in counter-clockwise order"
+        for i in range(3):
+            if point is self.points[i]:
+                return self.points[(i + 1) % 3]
 
     def get_angle(self, point):
         assert point in self.points
@@ -144,7 +153,6 @@ class MapTriangle():
         a = point.get_edge_to(others[0]).length
         b = point.get_edge_to(others[1]).length
         c = others[0].get_edge_to(others[1]).length
-
 
         # law of cosines
         return acos((a*a + b*b - c*c) / (2.0 * a * b))
@@ -161,24 +169,20 @@ class MapTriangle():
         # The final edge of a triangle always defines the directionality, 
         # triangles must go counterclockwise. This means that as the final 
         # edge goes from C to A, B is on the left as we go.
-        final_edge = self.get_edges()[2]
-        c = final_edge.points[0]
-        a = final_edge.points[1]
         
-        for p in self.points:
-            if p is not a and p is not c:
-                b = p
+        # C is always the unfixed point. 
+        c = self.unfixed_points()[0]
+        a = self.follow(c)
+        b = self.follow(a)
 
-        #a, b = self.fixed_points()
-        #c = self.unfixed_points()[0]
-
+        # The final edge determines the directionality of the triangle
         print("FIXING POINTS (B should be to the left of C->A)")
         print("A: {}, B: {}, C: {}".format(a, b, c))
         angle_a = self.get_angle(a)
-        ac = final_edge.length
+        ac = a.get_edge_to(c).length
 
         parallel = (b - a).normalize().scale(ac * cos(angle_a))
-        perp = parallel.orthogonal().normalize().scale(ac * sin(angle_a))
+        perp = parallel.orthogonal().normalize().scale(-1 * ac * sin(angle_a))
         position = a + parallel + perp
 
         c.x = position.x
