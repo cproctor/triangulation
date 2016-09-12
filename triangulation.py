@@ -176,13 +176,20 @@ class MapTriangle():
         b = self.follow(a)
 
         # The final edge determines the directionality of the triangle
-        print("FIXING POINTS (B should be to the left of C->A)")
-        print("A: {}, B: {}, C: {}".format(a, b, c))
+        #print("FIXING POINTS (B should be to the left of C->A)")
+        #print("A: {}, B: {}, C: {}".format(a, b, c))
         angle_a = self.get_angle(a)
         ac = a.get_edge_to(c).length
 
         parallel = (b - a).normalize().scale(ac * cos(angle_a))
-        perp = parallel.orthogonal().normalize().scale(-1 * ac * sin(angle_a))
+
+        # When cos(angle_a) is less than 0, the orthogonal vector will 
+        # go the wrong way. This correction fixes that. 
+        if cos(angle_a) > 0:
+            factor = -1    
+        else:
+            factor = 1
+        perp = parallel.orthogonal().normalize().scale(factor * ac * sin(angle_a))
         position = a + parallel + perp
 
         c.x = position.x
