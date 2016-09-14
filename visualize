@@ -31,8 +31,11 @@ args = parser.parse_args()
 
 with open(args.file) as infile:
     measurements = [row for row in DictReader(infile)]
-    for m in measurements:
-        m['distance'] = float(m['distance'])
+    try:
+        for m in measurements:
+            m['distance'] = float(m['distance'])
+    except KeyError:
+        raise KeyError("Error: Could not read distance {}".format(m))
     tri = Triangulation(measurements, args.orientation)
     tri.compute_positions()
     if args.improve != 0:
