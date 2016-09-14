@@ -29,6 +29,10 @@ parser.add_argument('--labels', '-l', action='store_true', default=False, help="
 parser.add_argument('--edgelengths', '-e', action='store_true', default=False, help="Write out the edge lengths")
 args = parser.parse_args()
 
+from math import sqrt
+def distance(p1, p2):
+    return sqrt(pow(p2.x-p1.x, 2) + pow(p2.y-p1.y, 2))
+
 with open(args.file) as infile:
     measurements = [row for row in DictReader(infile)]
     try:
